@@ -60,7 +60,7 @@ class FactureController extends Controller
     }
 
 
-    public function index($date)
+    public function index()
     {
         $facture = DB::table('factures as f')
             ->join('clients as c', 'c.id', '=', 'f.client_id')
@@ -87,7 +87,6 @@ class FactureController extends Controller
                 'f.canceled'
 
             )
-            ->where('f.date_facture', $date)
             ->where('f.status', '=', '1')
             ->orderBy('f.id', 'desc')->get();
         return $facture;
