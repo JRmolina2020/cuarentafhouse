@@ -17,5 +17,4 @@ mix.js("resources/js/app.js", "public/js")
         sassOptions: {
             quietDeps: true,
         },
-    })
-    .version(); // <--- SOLO AGREGA ESTA LÍNEA AQUÍ
+    });
