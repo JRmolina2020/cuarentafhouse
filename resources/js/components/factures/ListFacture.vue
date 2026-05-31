@@ -346,6 +346,9 @@ export default {
 
     created() {
         this.getList();
+        setTimeout(() => {
+            console.log("FACTURES:", this.factures);
+        }, 3000);
     },
     methods: {
         getDate() {
