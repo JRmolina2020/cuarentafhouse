@@ -57,7 +57,7 @@
                             class="table table-striped table-borderless mt-3"
                         >
                             <thead>
-                                <tr style="color: #fff; background: black">
+                                <tr>
                                     <th>#</th>
                                     <th>Total</th>
                                     <th>E</th>
