@@ -8,26 +8,24 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>Lambda</title>
 
-
-  <!-- START JS PERMISSIONS -->
-<script type="text/javascript">
-          @auth
-             window.Permissions = {!! json_encode(Auth::user()->allPermissions, true) !!};
-          @else
-             window.Permissions = [];
-          @endauth
-       </script>
-  <!-- -START LOCAL -->
-
-
-  <link rel="shortcut icon" type="image/png" href="{{secure_asset('/img/favicon.ico') }}">
-  <link rel="shortcut icon" sizes="192x192" href="{{secure_asset('/img/favicon.ico') }}">
-  <link rel="stylesheet" href="{{secure_asset('css/lte.min.css') }}">
- <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fontisto@v3.0.4/css/fontisto/fontisto.min.css"></i>
+  <script type="text/javascript">
+    @auth
+       window.Permissions = {!! json_encode(Auth::user()->allPermissions, true) !!};
+    @else
+       window.Permissions = [];
+    @endauth
+  </script>
+  <link rel="shortcut icon" type="image/png" href="{{ secure_asset('/img/favicon.ico') }}">
+  <link rel="shortcut icon" sizes="192x192" href="{{ secure_asset('/img/favicon.ico') }}">
   
+  <link rel="stylesheet" href="{{ secure_asset('css/lte.min.css') }}">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fontisto@v3.0.4/css/fontisto/fontisto.min.css">
 
-</head>
+  <link rel="stylesheet" href="{{ mix('css/app.css') }}">
+
+  <script src="{{ mix('js/app.js') }}" defer></script>
+  </head>
 <style>
   .principal {
     float: none;
