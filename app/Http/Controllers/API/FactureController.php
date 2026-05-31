@@ -88,7 +88,7 @@ class FactureController extends Controller
 
             )
             ->where('f.date_facture', $date)
-            ->where('f.status', '=', '1')
+            ->where('f.status', '=', 1)
             ->orderBy('f.id', 'desc')->get();
         return $facture;
     }
