@@ -240,6 +240,7 @@
         </div>
     </div>
 </template>
+
 <script>
 import { mapState } from "vuex";
 import ModalTicket from "../utilities/modalticket";
@@ -283,7 +284,6 @@ export default {
             "typeSale_one",
             "status",
             "urlfactures",
-            "status",
             "billstot",
             "moneySingle",
             "products",
@@ -294,7 +294,21 @@ export default {
     },
 
     created() {
+        // Inicializar 'date' con la fecha de hoy calculada en la zona horaria local (Colombia)
+        const hoy = new Date();
+        const offset = hoy.getTimezoneOffset();
+        const fechaLocal = new Date(hoy.getTime() - offset * 60 * 1000);
+        this.date = fechaLocal.toISOString().split("T")[0];
+
+        // Ejecutar la carga inicial del Mixin pasándole la fecha ya formateada
         this.getList();
+
+        // Disparar las consultas iniciales de Vuex para que sincronicen con la fecha actual local
+        this.$store.dispatch("Factureactions", this.date);
+        this.$store.dispatch("TypeSaleactions", this.date);
+        this.$store.dispatch("Billtotactions", this.date);
+        this.$store.dispatch("MoneySigleactions");
+
         setTimeout(() => {
             console.log("FACTURES:", this.factures);
         }, 3000);
@@ -333,8 +347,8 @@ export default {
 
         async destroy(id) {
             let url = this.urlfactures + "/" + id;
-            let response = await axios.delete(url);
             try {
+                let response = await axios.delete(url);
                 this.getList();
                 Swal.fire({
                     title: `${response.data.message}`,
@@ -352,18 +366,16 @@ export default {
             this.$store.dispatch("viewactions");
         },
         SendW() {
-            //format
             const formatoPesos = new Intl.NumberFormat("es-CO", {
                 style: "currency",
                 currency: "COP",
-                minimumFractionDigits: 0, // En Colombia, los pesos suelen mostrarse sin decimales
+                minimumFractionDigits: 0,
             });
-            //end
 
             let tot = formatoPesos.format(this.typeSale[0].tot);
             let other = formatoPesos.format(this.typeSale[0].other);
             let efecty = formatoPesos.format(this.typeSale[0].efecty);
-            const numero = "57" + this.company[0].phone; // Número en formato internacional sin '+'
+            const numero = "57" + this.company[0].phone;
 
             const mensaje = encodeURIComponent(
                 "*Hola!* \n\nEspero que estés teniendo un gran día. \n *Quería mostrarte el cierre del dia:* \n *TOTAL VENTA:*" +
@@ -390,7 +402,6 @@ export default {
                         } - $${item.price} = $${item.tot}`;
                     });
 
-                    // Armar el mensaje completo
                     const mensaje = encodeURIComponent(
                         "*Hola!* \n\nEspero que estés teniendo un gran día. \n\n* Aquí está tu factura:*" +
                             "\n\n*TOTAL:* $" +
@@ -472,7 +483,6 @@ export default {
             });
 
             if (result.isConfirmed) {
-                // Mostrar loader mientras se procesa
                 Swal.fire({
                     title: "Enviando factura...",
                     text: "Por favor espera",
@@ -511,7 +521,6 @@ export default {
                 const res = await this.$axios.post("/sendemail", {
                     id: 60,
                 });
-
                 console.log(res.data);
             } catch (error) {
                 console.error(error.response?.data || error.message);
