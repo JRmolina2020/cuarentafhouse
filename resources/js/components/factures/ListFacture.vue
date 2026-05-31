@@ -52,94 +52,145 @@
                 </div>
 
                 <div class="table-responsive mt-3">
-                    <div class="table-responsive">
-                        <table
-                            class="table table-striped table-borderless mt-3"
-                        >
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Total</th>
-                                    <th>E</th>
-                                    <th>O</th>
-                                    <th>Banco</th>
-                                    <th>Vendedor</th>
-                                    <th>Estado</th>
-                                    <th>POS</th>
-                                    <th>Fac</th>
-                                    <th>D</th>
-                                    <th>E</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="row in factures" :key="row.id">
-                                    <td>{{ row.id }}</td>
-                                    <td>{{ row.tot | currency }}</td>
-                                    <td>{{ row.efecty | currency }}</td>
-                                    <td>{{ row.other | currency }}</td>
+                    <VTable
+                        :data="factures"
+                        :page-size="5"
+                        :currentPage.sync="currentPage"
+                        @totalPagesChanged="totalPages = $event"
+                        class="table table-striped table-borderless mt-3"
+                    >
+                        <template #head>
+                            <tr style="color: #fff; background: black">
+                                <th>#</th>
+                                <th>Prefijo</th>
+                                <th>Total</th>
+                                <th>E</th>
+                                <th>O</th>
+                                <th>Banco</th>
+                                <th>Vendedor</th>
+                                <th>Estado</th>
+                                <th>POS</th>
+                                <th></th>
+                                <th></th>
+                                <th>E</th>
+                            </tr>
+                        </template>
 
-                                    <td v-if="row.type_sale == 1">
-                                        <i class="fi fi-dollar"></i>
-                                    </td>
-                                    <td v-else>{{ row.type_sale }}</td>
+                        <template #body="{ rows }">
+                            <tr
+                                v-for="row in rows"
+                                :key="row.id"
+                                :class="{ 'table-danger': row.canceled }"
+                            >
+                                <td v-if="row.numbering_range_id == 1">
+                                    {{ row.id }}
+                                </td>
+                                <td v-else class="bg-dark text-white">
+                                    {{ row.id }}
+                                </td>
 
-                                    <th>{{ row.name }}</th>
+                                <td v-if="row.numberf">
+                                    {{ row.numberf }}
 
-                                    <td v-if="row.status">
-                                        <span class="badge badge-success"
-                                            >Pagado</span
-                                        >
-                                    </td>
-                                    <td v-else>
-                                        <span
-                                            @click="statusModified(row.id)"
-                                            class="badge badge-danger"
-                                            style="cursor: pointer"
-                                            >Deuda</span
-                                        >
-                                    </td>
-
-                                    <td>
-                                        <Modal-Ticket
-                                            v-bind:cod="row.id"
-                                        ></Modal-Ticket>
-                                    </td>
-                                    <td>
-                                        <Modal-Fac
-                                            v-bind:cod="row.id"
-                                        ></Modal-Fac>
-                                    </td>
-
-                                    <td>
-                                        <button
-                                            v-can="'enviar factura'"
-                                            type="button"
-                                            @click="emailFac(row.id)"
-                                            class="btn bg-primary btn-sm"
-                                        >
-                                            <i class="fi fi-skype"></i>
-                                        </button>
-                                    </td>
-                                    <td v-can="'eliminar factura'">
-                                        <button
-                                            type="button"
-                                            @click="destroy(row.id)"
-                                            class="btn bg-danger btn-sm"
-                                        >
-                                            <i class="fi fi-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr v-if="factures.length === 0">
-                                    <td
-                                        colspan="11"
-                                        class="text-center text-muted py-3"
+                                    <span
+                                        v-if="row.canceled"
+                                        class="badge bg-danger"
                                     >
-                                        No hay facturas disponibles.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                        Fac Anulada
+                                    </span>
+                                </td>
+                                <td v-else>
+                                    <span class="badge bg-primary">
+                                        interno
+                                    </span>
+                                </td>
+                                <td>${{ row.tot | currency }}</td>
+                                <td>${{ row.efecty | currency }}</td>
+                                <td>${{ row.other | currency }}</td>
+                                <td v-if="row.type_sale == 1">
+                                    <i class="fi fi-dollar"></i>
+                                </td>
+                                <td v-else>{{ row.type_sale }}</td>
+                                <th>{{ row.name }}</th>
+                                <td>
+                                    <span class="badge badge-success"
+                                        >Pagado</span
+                                    >
+                                </td>
+
+                                <td>
+                                    <div
+                                        class="btn-group btn-group-sm"
+                                        role="group"
+                                    >
+                                        <!-- Botón: Ver ticket (modal) -->
+                                        <Modal-Ticket :cod="row.id" />
+
+                                        <!-- Botón: WhatsApp, solo si hay teléfono -->
+                                        <button
+                                            v-if="row.phonef && row.phonef != 0"
+                                            class="btn btn-outline-success"
+                                            type="button"
+                                            @click="Wppfacture(row.id)"
+                                            title="Enviar por WhatsApp"
+                                        >
+                                            <i class="fi fi-phone"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button
+                                        type="button"
+                                        @click="mostrarAlerta(row)"
+                                        class="btn bg-black btn-sm"
+                                    >
+                                        <i class="fi fi-eye"></i>
+                                    </button>
+                                </td>
+                                <td>
+                                    <button
+                                        v-can="'electronica'"
+                                        v-if="!row.numberf"
+                                        type="button"
+                                        @click="sendfac(row)"
+                                        class="btn bg-success btn-sm"
+                                    >
+                                        <i class="fi fi-check"></i>
+                                    </button>
+                                    <button
+                                        v-if="row.numberf && !row.canceled"
+                                        v-can="'electronica'"
+                                        type="button"
+                                        @click="sendNote(row)"
+                                        class="btn bg-danger btn-sm"
+                                    >
+                                        <i class="fi fi-export"></i>
+                                    </button>
+                                </td>
+
+                                <td
+                                    v-if="row.numbering_range_id == 1"
+                                    v-can="'eliminar factura'"
+                                >
+                                    <button
+                                        type="button"
+                                        @click="destroy(row.id)"
+                                        class="btn bg-danger btn-sm"
+                                    >
+                                        <i class="fi fi-trash"></i>
+                                    </button>
+                                </td>
+                                <td v-else></td>
+                            </tr>
+                        </template>
+                    </VTable>
+                    <div class="text-xs-center">
+                        <VTPagination
+                            :currentPage.sync="currentPage"
+                            :total-pages="totalPages"
+                            :boundary-links="true"
+                            :maxPageLinks="4"
+                        />
                     </div>
                 </div>
 
@@ -240,7 +291,6 @@
         </div>
     </div>
 </template>
-
 <script>
 import { mapState } from "vuex";
 import ModalTicket from "../utilities/modalticket";
@@ -284,6 +334,7 @@ export default {
             "typeSale_one",
             "status",
             "urlfactures",
+            "status",
             "billstot",
             "moneySingle",
             "products",
@@ -294,24 +345,7 @@ export default {
     },
 
     created() {
-        // Inicializar 'date' con la fecha de hoy calculada en la zona horaria local (Colombia)
-        const hoy = new Date();
-        const offset = hoy.getTimezoneOffset();
-        const fechaLocal = new Date(hoy.getTime() - offset * 60 * 1000);
-        this.date = fechaLocal.toISOString().split("T")[0];
-
-        // Ejecutar la carga inicial del Mixin pasándole la fecha ya formateada
         this.getList();
-
-        // Disparar las consultas iniciales de Vuex para que sincronicen con la fecha actual local
-        this.$store.dispatch("Factureactions", this.date);
-        this.$store.dispatch("TypeSaleactions", this.date);
-        this.$store.dispatch("Billtotactions", this.date);
-        this.$store.dispatch("MoneySigleactions");
-
-        setTimeout(() => {
-            console.log("FACTURES:", this.factures);
-        }, 3000);
     },
     methods: {
         getDate() {
@@ -347,8 +381,8 @@ export default {
 
         async destroy(id) {
             let url = this.urlfactures + "/" + id;
+            let response = await axios.delete(url);
             try {
-                let response = await axios.delete(url);
                 this.getList();
                 Swal.fire({
                     title: `${response.data.message}`,
@@ -366,16 +400,18 @@ export default {
             this.$store.dispatch("viewactions");
         },
         SendW() {
+            //format
             const formatoPesos = new Intl.NumberFormat("es-CO", {
                 style: "currency",
                 currency: "COP",
-                minimumFractionDigits: 0,
+                minimumFractionDigits: 0, // En Colombia, los pesos suelen mostrarse sin decimales
             });
+            //end
 
             let tot = formatoPesos.format(this.typeSale[0].tot);
             let other = formatoPesos.format(this.typeSale[0].other);
             let efecty = formatoPesos.format(this.typeSale[0].efecty);
-            const numero = "57" + this.company[0].phone;
+            const numero = "57" + this.company[0].phone; // Número en formato internacional sin '+'
 
             const mensaje = encodeURIComponent(
                 "*Hola!* \n\nEspero que estés teniendo un gran día. \n *Quería mostrarte el cierre del dia:* \n *TOTAL VENTA:*" +
@@ -402,6 +438,7 @@ export default {
                         } - $${item.price} = $${item.tot}`;
                     });
 
+                    // Armar el mensaje completo
                     const mensaje = encodeURIComponent(
                         "*Hola!* \n\nEspero que estés teniendo un gran día. \n\n* Aquí está tu factura:*" +
                             "\n\n*TOTAL:* $" +
@@ -483,6 +520,7 @@ export default {
             });
 
             if (result.isConfirmed) {
+                // Mostrar loader mientras se procesa
                 Swal.fire({
                     title: "Enviando factura...",
                     text: "Por favor espera",
@@ -521,6 +559,7 @@ export default {
                 const res = await this.$axios.post("/sendemail", {
                     id: 60,
                 });
+
                 console.log(res.data);
             } catch (error) {
                 console.error(error.response?.data || error.message);
