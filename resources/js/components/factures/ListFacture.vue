@@ -52,145 +52,94 @@
                 </div>
 
                 <div class="table-responsive mt-3">
-                    <VTable
-                        :data="factures"
-                        :page-size="5"
-                        :currentPage.sync="currentPage"
-                        @totalPagesChanged="totalPages = $event"
-                        class="table table-striped table-borderless mt-3"
-                    >
-                        <template #head>
-                            <tr style="color: #fff; background: black">
-                                <th>#</th>
-                                <th>Prefijo</th>
-                                <th>Total</th>
-                                <th>E</th>
-                                <th>O</th>
-                                <th>Banco</th>
-                                <th>Vendedor</th>
-                                <th>Estado</th>
-                                <th>POS</th>
-                                <th></th>
-                                <th></th>
-                                <th>E</th>
-                            </tr>
-                        </template>
+                    <div class="table-responsive">
+                        <table
+                            class="table table-striped table-borderless mt-3"
+                        >
+                            <thead>
+                                <tr style="color: #fff; background: black">
+                                    <th>#</th>
+                                    <th>Total</th>
+                                    <th>E</th>
+                                    <th>O</th>
+                                    <th>Banco</th>
+                                    <th>Vendedor</th>
+                                    <th>Estado</th>
+                                    <th>POS</th>
+                                    <th>Fac</th>
+                                    <th>D</th>
+                                    <th>E</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="row in factures" :key="row.id">
+                                    <td>{{ row.id }}</td>
+                                    <td>{{ row.tot | currency }}</td>
+                                    <td>{{ row.efecty | currency }}</td>
+                                    <td>{{ row.other | currency }}</td>
 
-                        <template #body="{ rows }">
-                            <tr
-                                v-for="row in rows"
-                                :key="row.id"
-                                :class="{ 'table-danger': row.canceled }"
-                            >
-                                <td v-if="row.numbering_range_id == 1">
-                                    {{ row.id }}
-                                </td>
-                                <td v-else class="bg-dark text-white">
-                                    {{ row.id }}
-                                </td>
+                                    <td v-if="row.type_sale == 1">
+                                        <i class="fi fi-dollar"></i>
+                                    </td>
+                                    <td v-else>{{ row.type_sale }}</td>
 
-                                <td v-if="row.numberf">
-                                    {{ row.numberf }}
+                                    <th>{{ row.name }}</th>
 
-                                    <span
-                                        v-if="row.canceled"
-                                        class="badge bg-danger"
-                                    >
-                                        Fac Anulada
-                                    </span>
-                                </td>
-                                <td v-else>
-                                    <span class="badge bg-primary">
-                                        interno
-                                    </span>
-                                </td>
-                                <td>${{ row.tot | currency }}</td>
-                                <td>${{ row.efecty | currency }}</td>
-                                <td>${{ row.other | currency }}</td>
-                                <td v-if="row.type_sale == 1">
-                                    <i class="fi fi-dollar"></i>
-                                </td>
-                                <td v-else>{{ row.type_sale }}</td>
-                                <th>{{ row.name }}</th>
-                                <td>
-                                    <span class="badge badge-success"
-                                        >Pagado</span
-                                    >
-                                </td>
-
-                                <td>
-                                    <div
-                                        class="btn-group btn-group-sm"
-                                        role="group"
-                                    >
-                                        <!-- Botón: Ver ticket (modal) -->
-                                        <Modal-Ticket :cod="row.id" />
-
-                                        <!-- Botón: WhatsApp, solo si hay teléfono -->
-                                        <button
-                                            v-if="row.phonef && row.phonef != 0"
-                                            class="btn btn-outline-success"
-                                            type="button"
-                                            @click="Wppfacture(row.id)"
-                                            title="Enviar por WhatsApp"
+                                    <td v-if="row.status">
+                                        <span class="badge badge-success"
+                                            >Pagado</span
                                         >
-                                            <i class="fi fi-phone"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                                <td>
-                                    <button
-                                        type="button"
-                                        @click="mostrarAlerta(row)"
-                                        class="btn bg-black btn-sm"
-                                    >
-                                        <i class="fi fi-eye"></i>
-                                    </button>
-                                </td>
-                                <td>
-                                    <button
-                                        v-can="'electronica'"
-                                        v-if="!row.numberf"
-                                        type="button"
-                                        @click="sendfac(row)"
-                                        class="btn bg-success btn-sm"
-                                    >
-                                        <i class="fi fi-check"></i>
-                                    </button>
-                                    <button
-                                        v-if="row.numberf && !row.canceled"
-                                        v-can="'electronica'"
-                                        type="button"
-                                        @click="sendNote(row)"
-                                        class="btn bg-danger btn-sm"
-                                    >
-                                        <i class="fi fi-export"></i>
-                                    </button>
-                                </td>
+                                    </td>
+                                    <td v-else>
+                                        <span
+                                            @click="statusModified(row.id)"
+                                            class="badge badge-danger"
+                                            style="cursor: pointer"
+                                            >Deuda</span
+                                        >
+                                    </td>
 
-                                <td
-                                    v-if="row.numbering_range_id == 1"
-                                    v-can="'eliminar factura'"
-                                >
-                                    <button
-                                        type="button"
-                                        @click="destroy(row.id)"
-                                        class="btn bg-danger btn-sm"
+                                    <td>
+                                        <Modal-Ticket
+                                            v-bind:cod="row.id"
+                                        ></Modal-Ticket>
+                                    </td>
+                                    <td>
+                                        <Modal-Fac
+                                            v-bind:cod="row.id"
+                                        ></Modal-Fac>
+                                    </td>
+
+                                    <td>
+                                        <button
+                                            v-can="'enviar factura'"
+                                            type="button"
+                                            @click="emailFac(row.id)"
+                                            class="btn bg-primary btn-sm"
+                                        >
+                                            <i class="fi fi-skype"></i>
+                                        </button>
+                                    </td>
+                                    <td v-can="'eliminar factura'">
+                                        <button
+                                            type="button"
+                                            @click="destroy(row.id)"
+                                            class="btn bg-danger btn-sm"
+                                        >
+                                            <i class="fi fi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr v-if="factures.length === 0">
+                                    <td
+                                        colspan="11"
+                                        class="text-center text-muted py-3"
                                     >
-                                        <i class="fi fi-trash"></i>
-                                    </button>
-                                </td>
-                                <td v-else></td>
-                            </tr>
-                        </template>
-                    </VTable>
-                    <div class="text-xs-center">
-                        <VTPagination
-                            :currentPage.sync="currentPage"
-                            :total-pages="totalPages"
-                            :boundary-links="true"
-                            :maxPageLinks="4"
-                        />
+                                        No hay facturas disponibles.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
